@@ -1,13 +1,13 @@
-import os
-import pickle
-import faiss
-import numpy as np
 from sentence_transformers import SentenceTransformer
+import numpy as np
+import faiss
+import pickle
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# Initialize model (do NOT pass normalize_embeddings param if unsupported)
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 def embed_text_chunks(text_chunks):
-    embeddings = model.encode(text_chunks)
+    embeddings = embedder.encode(text_chunks)
     return np.array(embeddings, dtype="float32")
 
 def build_faiss_index(embeddings):

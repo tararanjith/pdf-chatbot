@@ -1,14 +1,15 @@
 import os
-import fitz  #PyMuPDF
+import fitz  # PyMuPDF
 from nltk.tokenize import sent_tokenize
 
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf(pdf_path, max_chunk_size=500):
     doc = fitz.open(pdf_path)
     full_text = ""
     for page in doc:
         full_text += page.get_text()
     doc.close()
-    return full_text
+
+    return split_text_into_chunks(full_text, max_chunk_size)
 
 def split_text_into_chunks(text, max_chunk_size=500):
     sentences = sent_tokenize(text)

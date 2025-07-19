@@ -6,19 +6,32 @@ const PDFUpload = ({ onUploadSuccess }) => {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      alert("Please select a PDF file before uploading.");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("pdf", file); // ✅ Match Flask's expected key
 
     setUploading(true);
     try {
-      await axios.post("http://localhost:5000/upload", formData);
+      const res = await axios.post("http://localhost:5000/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true, // ✅ Required for Flask session
+      });
+
+      console.log("Upload response:", res.data);
       alert("Upload successful!");
       onUploadSuccess();
     } catch (err) {
-      alert("Upload failed.");
+      console.error("Upload failed:", err);
+      alert("Upload failed. Please check the console for more details.");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   return (
@@ -26,7 +39,7 @@ const PDFUpload = ({ onUploadSuccess }) => {
       <input
         type="file"
         accept="application/pdf"
-        onChange={e => setFile(e.target.files[0])}
+        onChange={(e) => setFile(e.target.files[0])}
       />
       <button onClick={handleUpload} disabled={uploading}>
         {uploading ? "Uploading..." : "Upload PDF"}
