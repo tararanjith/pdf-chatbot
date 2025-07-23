@@ -41,30 +41,38 @@ def upload():
 
     return jsonify({'message': 'File uploaded and processed successfully'})
 
+
 @app.route('/chat', methods=['POST'])
 def chat():
+    print("Raw request data:", request.data)
     data = request.get_json()
+    print("Parsed JSON:", data)
+
+    if data is None:
+        return jsonify({'error': 'Invalid or missing JSON'}), 400
+
     query = data.get('query')
     history = data.get('history', [])
-    session_id = session.get('session_id')
 
+    if not query:
+        return jsonify({'error': 'Missing query'}), 400
+
+    session_id = session.get('session_id')
     if not session_id or session_id not in session_embeddings:
         return jsonify({'error': 'No document uploaded yet'}), 400
 
     chunks = session_embeddings[session_id]['chunks']
     embeddings = session_embeddings[session_id]['embeddings']
 
-    # Pass chunks, embeddings, and embedder to retrieve_answer
     matched_chunks = retrieve_answer(query, chunks, embeddings, embedder)
-
     response = generate_response(query, matched_chunks, history)
 
-    # Append user and assistant messages to history
     history.append({"role": "user", "content": query})
     history.append({"role": "assistant", "content": response})
     session_embeddings[session_id]['history'] = history
 
     return jsonify({'response': response})
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='localhost', port=5000, debug=True)
